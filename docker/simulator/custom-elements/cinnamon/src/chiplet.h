@@ -221,6 +221,7 @@ private:
       uint64_t commOnlyCycles = 0;
       uint64_t overlapCycles = 0;
       uint64_t idleCycles = 0;
+      uint64_t computeDataWaitCycles = 0;
   } stats_;
 
   struct Config {

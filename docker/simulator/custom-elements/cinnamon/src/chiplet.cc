@@ -249,6 +249,7 @@ void CinnamonChiplet::finish() {
 	output->output("\tCommunication-Only Cycles: %" PRIu64 "\n", stats_.commOnlyCycles);
 	output->output("\tOverlap Cycles:            %" PRIu64 "\n", stats_.overlapCycles);
 	output->output("\tIdle Cycles:               %" PRIu64 "\n", stats_.idleCycles);
+	output->output("\tCompute Data-Wait Cycles:  %" PRIu64 "\n", stats_.computeDataWaitCycles);
 	if(totalCycles > 0) {
 		output->output("\tTotal Compute %%:           %.2f\n", (100.0 * totalComputeCycles) / totalCycles);
 		output->output("\tTotal Comm %%:              %.2f\n", (100.0 * totalCommCycles) / totalCycles);
@@ -256,6 +257,7 @@ void CinnamonChiplet::finish() {
 		output->output("\tCommunication-Only %%:      %.2f\n", (100.0 * stats_.commOnlyCycles) / totalCycles);
 		output->output("\tOverlap %%:                 %.2f\n", (100.0 * stats_.overlapCycles) / totalCycles);
 		output->output("\tIdle %%:                    %.2f\n", (100.0 * stats_.idleCycles) / totalCycles);
+		output->output("\tCompute Data-Wait %%:       %.2f\n", (100.0 * stats_.computeDataWaitCycles) / totalCycles);
 	}
 	output->output("------------------------------------------------------------------------\n");
 
@@ -1405,6 +1407,19 @@ bool CinnamonChiplet::tick(SST::Cycle_t currentCycle) {
 			stats_.commOnlyCycles++;
 		} else {
 			stats_.idleCycles++;
+		}
+
+		// Track compute data-wait: compute units idle while instruction queues have pending work
+		if(!computeActive){
+			bool hasPendingWork = !addQueue->okayToFinish() || !mulQueue->okayToFinish() ||
+			                      !rotQueue->okayToFinish() || !evgQueue->okayToFinish() ||
+			                      !nttQueue->okayToFinish() || !sudQueue->okayToFinish() ||
+			                      !bciQueue->okayToFinish() || !bcwQueue->okayToFinish() ||
+			                      !pl1Queue->okayToFinish() || !rsvQueue->okayToFinish() ||
+			                      !modQueue->okayToFinish();
+			if(hasPendingWork){
+				stats_.computeDataWaitCycles++;
+			}
 		}
 	}
 	// fetchRequest(currentCycle);
