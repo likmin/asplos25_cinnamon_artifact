@@ -159,7 +159,7 @@ private:
         }
 
         std::size_t computeHops() const {
-            return static_cast<std::size_t>(std::log2(maxDestination-minDestination));
+            return static_cast<std::size_t>(std::log2(maxDestination-minDestination+1));
         }
     };
 

@@ -224,6 +224,8 @@ void CinnamonChiplet::finish() {
 	output->output("------------------------------------------------------------------------\n");
 	output->output("%s",memoryUnit->printStats().c_str());
 	output->output("------------------------------------------------------------------------\n");
+	output->output("%s",disQueue->printStats().c_str());
+	output->output("------------------------------------------------------------------------\n");
 	for(auto &fu: functionalUnits) {
 		output->output("%s",fu->printStats().c_str());
 		output->output("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - \n");

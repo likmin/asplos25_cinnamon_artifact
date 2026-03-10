@@ -176,7 +176,7 @@ void CinnamonNetwork::handleOutput(SST::Event * ev, int portID){
     output->verbose(CALL_INFO, 4, 0, "%s: %lu Outputing syncID : %lu to chiplet: %d\n", getName().c_str(), cpu->getCurrentSimCycle(), networkEvent->syncID(),portID);
     auto responseEvent = std::make_unique<CinnamonNetworkEvent>(networkEvent->syncID());
 
-    auto hops_ = syncOp.computeHops();
+    auto hops_ = static_cast<std::size_t>(hops);
     /* -1 because we already counted the latency once while receiving*/
     chipletLinks[portID]->send(hops_ - 1 /*Latency */, responseEvent.release());
     syncOp.decrementOutputsPending();

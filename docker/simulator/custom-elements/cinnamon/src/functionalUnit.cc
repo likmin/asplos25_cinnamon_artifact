@@ -1543,6 +1543,17 @@ bool CinnamonDisQueue::okayToFinish() {
     return instructionQueue.empty();
 }
 
+std::string CinnamonDisQueue::printStats() {
+    std::stringstream s;
+    s << "Dis Queue: " << name << "\n";
+    s << "\tTotal Cycles:                " << stats_.totalCycles << "\n";
+    s << "\tBusy Cycles (data in-flight):" << stats_.busyCycles << "\n";
+    s << "\tWaiting For Network Cycles:  " << stats_.waitingForNetworkCycles << "\n";
+    double networkWaitFraction = stats_.totalCycles > 0 ? ((100.0) * stats_.waitingForNetworkCycles) / stats_.totalCycles : 0.0;
+    s << "\tNetwork Wait %:              " << networkWaitFraction << "\n";
+    return s.str();
+}
+
 //###########################################
 
 
