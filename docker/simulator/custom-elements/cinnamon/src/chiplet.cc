@@ -239,13 +239,19 @@ void CinnamonChiplet::finish() {
 	output->output("------------------------------------------------------------------------\n");
 
 	uint64_t totalCycles = stats_.computeOnlyCycles + stats_.commOnlyCycles + stats_.overlapCycles + stats_.idleCycles;
+	uint64_t totalComputeCycles = stats_.computeOnlyCycles + stats_.overlapCycles;
+	uint64_t totalCommCycles = stats_.commOnlyCycles + stats_.overlapCycles;
 	output->output("Compute/Communication Overlap Statistics:\n");
 	output->output("\tTotal Cycles:              %" PRIu64 "\n", totalCycles);
+	output->output("\tTotal Compute Cycles:      %" PRIu64 "\n", totalComputeCycles);
+	output->output("\tTotal Comm Cycles:         %" PRIu64 "\n", totalCommCycles);
 	output->output("\tCompute-Only Cycles:       %" PRIu64 "\n", stats_.computeOnlyCycles);
 	output->output("\tCommunication-Only Cycles: %" PRIu64 "\n", stats_.commOnlyCycles);
 	output->output("\tOverlap Cycles:            %" PRIu64 "\n", stats_.overlapCycles);
 	output->output("\tIdle Cycles:               %" PRIu64 "\n", stats_.idleCycles);
 	if(totalCycles > 0) {
+		output->output("\tTotal Compute %%:           %.2f\n", (100.0 * totalComputeCycles) / totalCycles);
+		output->output("\tTotal Comm %%:              %.2f\n", (100.0 * totalCommCycles) / totalCycles);
 		output->output("\tCompute-Only %%:            %.2f\n", (100.0 * stats_.computeOnlyCycles) / totalCycles);
 		output->output("\tCommunication-Only %%:      %.2f\n", (100.0 * stats_.commOnlyCycles) / totalCycles);
 		output->output("\tOverlap %%:                 %.2f\n", (100.0 * stats_.overlapCycles) / totalCycles);
