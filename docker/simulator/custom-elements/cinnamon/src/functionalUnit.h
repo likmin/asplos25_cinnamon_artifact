@@ -43,6 +43,8 @@ class CinnamonFunctionalUnit {
         SST::Cycle_t totalCycles = 0;
     } stats_;
 
+    bool lastCycleBusy_ = false;
+
     public:
 
     // CinnamonMemoryUnit(Interfaces::StandardMem * memory);
@@ -54,6 +56,7 @@ class CinnamonFunctionalUnit {
     bool isIntervalReservable(const CinnamonInstructionInterval & );
     void addReservation(const CinnamonInstructionInterval & interval);
     std::string printStats();
+    bool wasBusyLastCycle() const { return lastCycleBusy_; }
 
 };
 
@@ -69,6 +72,7 @@ class CinnamonBaseConversionUnit {
     std::uint16_t latency;
     // std::uint16_t unitBusyCycles;
     // std::uint8_t numUnits;
+    bool lastCycleBusy_ = false;
 
     public:
 
@@ -78,6 +82,7 @@ class CinnamonBaseConversionUnit {
     bool okayToFinish();
     // void assignInstruction(std::shared_ptr<CinnamonBciInstruction> instruction);
     bool isBusy() const;
+    bool wasBusyLastCycle() const { return lastCycleBusy_; }
     void initInstruction(SST::Cycle_t currentCycle, std::shared_ptr<CinnamonBciInstruction> instruction);
 
 };
@@ -90,6 +95,7 @@ class CinnamonInstructionQueue {
         virtual void tick(SST::Cycle_t currentCycle) = 0;
         virtual bool okayToFinish() = 0;
         virtual std::string printStats() { return ""; }
+        virtual bool wasBusy() const { return false; }
         virtual ~CinnamonInstructionQueue() = default; 
     protected:
         using FuVector = std::vector<std::shared_ptr<CinnamonFunctionalUnit>>;
@@ -394,6 +400,8 @@ class CinnamonDisQueue : public CinnamonInstructionQueue {
 
     } stats_;
 
+    bool lastCycleBusy_ = false;
+
     public:
 
         CinnamonDisQueue(CinnamonChiplet * pe, CinnamonCPU * cpu, const std::string & name, const uint32_t outputLevel, CinnamonNetwork * network, Link * networkLink);
@@ -401,6 +409,7 @@ class CinnamonDisQueue : public CinnamonInstructionQueue {
         void tick(SST::Cycle_t currentCycle) override;
         bool okayToFinish() override;
         std::string printStats();
+        bool wasBusy() const override { return lastCycleBusy_; }
 
 
         // TODO: Add destructor 

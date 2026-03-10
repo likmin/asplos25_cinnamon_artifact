@@ -52,6 +52,8 @@ class CinnamonMemoryUnit {
         SST::Cycle_t busyCyclesWindow = 0;
     } stats_;
 
+    bool lastCycleBusy_ = false;
+
     public:
 
     // CinnamonMemoryUnit(Interfaces::StandardMem * memory);
@@ -71,6 +73,7 @@ class CinnamonMemoryUnit {
     void handleScalarLoad(SST::Cycle_t currentCycle, Interfaces::StandardMem::Addr addr, std::size_t size);
     bool okayToFinish();
     std::string printStats();
+    bool wasBusyLastCycle() const { return lastCycleBusy_; }
 
 };
 } // Namespace Cinnamon

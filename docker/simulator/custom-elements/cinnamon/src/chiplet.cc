@@ -237,6 +237,21 @@ void CinnamonChiplet::finish() {
 	output->output("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - \n");
 	output->output("%s",s.str().c_str());
 	output->output("------------------------------------------------------------------------\n");
+
+	uint64_t totalCycles = stats_.computeOnlyCycles + stats_.commOnlyCycles + stats_.overlapCycles + stats_.idleCycles;
+	output->output("Compute/Communication Overlap Statistics:\n");
+	output->output("\tTotal Cycles:              %" PRIu64 "\n", totalCycles);
+	output->output("\tCompute-Only Cycles:       %" PRIu64 "\n", stats_.computeOnlyCycles);
+	output->output("\tCommunication-Only Cycles: %" PRIu64 "\n", stats_.commOnlyCycles);
+	output->output("\tOverlap Cycles:            %" PRIu64 "\n", stats_.overlapCycles);
+	output->output("\tIdle Cycles:               %" PRIu64 "\n", stats_.idleCycles);
+	if(totalCycles > 0) {
+		output->output("\tCompute-Only %%:            %.2f\n", (100.0 * stats_.computeOnlyCycles) / totalCycles);
+		output->output("\tCommunication-Only %%:      %.2f\n", (100.0 * stats_.commOnlyCycles) / totalCycles);
+		output->output("\tOverlap %%:                 %.2f\n", (100.0 * stats_.overlapCycles) / totalCycles);
+		output->output("\tIdle %%:                    %.2f\n", (100.0 * stats_.idleCycles) / totalCycles);
+	}
+	output->output("------------------------------------------------------------------------\n");
 }
 
 bool CinnamonChiplet::canMapToPhysicalRegister(const CinnamonParsedValueType & val){
@@ -1332,6 +1347,43 @@ bool CinnamonChiplet::tick(SST::Cycle_t currentCycle) {
 	}
 	for(int i = 0; i < baseConversionUnits.size(); i++){
 		baseConversionUnits.at(i)->executeCycleEnd(currentCycle);
+	}
+
+	// Track compute/communication overlap
+	{
+		bool computeActive = false;
+		bool commActive = disQueue->wasBusy();
+
+		// Check if any functional unit is busy
+		for(const auto& fu : functionalUnits){
+			if(fu->wasBusyLastCycle()){
+				computeActive = true;
+				break;
+			}
+		}
+		// Check if memory unit is busy
+		if(!computeActive && memoryUnit->wasBusyLastCycle()){
+			computeActive = true;
+		}
+		// Check if any base conversion unit is busy
+		if(!computeActive){
+			for(const auto& bcu : baseConversionUnits){
+				if(bcu->wasBusyLastCycle()){
+					computeActive = true;
+					break;
+				}
+			}
+		}
+
+		if(computeActive && commActive){
+			stats_.overlapCycles++;
+		} else if(computeActive){
+			stats_.computeOnlyCycles++;
+		} else if(commActive){
+			stats_.commOnlyCycles++;
+		} else {
+			stats_.idleCycles++;
+		}
 	}
 	// fetchRequest(currentCycle);
 	// issueRequest(currentCycle);

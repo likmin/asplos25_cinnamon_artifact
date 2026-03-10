@@ -146,6 +146,7 @@ void CinnamonMemoryUnit::executeCycleBegin(SST::Cycle_t currentCycle) {
         stats_.busyCycles++;
         stats_.busyCyclesWindow++;
     }
+    lastCycleBusy_ = busy;
 
     if(currentCycle % 100000 == 0){
         output->verbose(CALL_INFO, 1, 0, "%s:Heartbeat @ %" PRId64 "00K cycles. Memory Util Cycles: %" PRIu64 "\n",pe->getName().c_str(),currentCycle/(100000),stats_.busyCyclesWindow);
