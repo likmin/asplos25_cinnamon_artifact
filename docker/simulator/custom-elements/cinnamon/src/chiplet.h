@@ -71,6 +71,7 @@ class CinnamonNetwork;
   class CinnamonPl3Queue;
   class CinnamonPl4Queue;
   class CinnamonRsvQueue;
+  class CinnamonDisQueue;
 
 
 class CinnamonChiplet : public SubComponent {
@@ -193,7 +194,7 @@ private:
   std::unique_ptr<CinnamonInstructionQueue> pl4Queue;
   std::unique_ptr<CinnamonInstructionQueue> rsvQueue;
   std::unique_ptr<CinnamonInstructionQueue> modQueue;
-  std::unique_ptr<CinnamonInstructionQueue> disQueue;
+  std::unique_ptr<CinnamonDisQueue> disQueue;
   // std::unique_ptr<CinnamonInstructionQueue> joiQueue;
   
   void dummyHandler(SST::Event * ev) { };

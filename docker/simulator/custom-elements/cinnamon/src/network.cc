@@ -209,6 +209,17 @@ bool CinnamonNetwork::tick(SST::Cycle_t cycle) {
         }
     }
 
+    // Track concurrent sync operations for congestion analysis
+    {
+        uint64_t activeSyncOps = syncOps.size();
+        if(activeSyncOps > 1){
+            stats_.multiSyncCycles++;
+        }
+        if(activeSyncOps > stats_.maxConcurrentSyncOps){
+            stats_.maxConcurrentSyncOps = activeSyncOps;
+        }
+    }
+
     if(cycle % 100000 == 0){
         output->verbose(CALL_INFO, 1, 0, "%s:Heartbeat @ %" PRIu64 " 00K cycles. Network Util Cycles: %" PRIu64 "\n",getName().c_str(),cycle/(100000),stats_.busyCyclesWindow);
         output->flush();
@@ -220,17 +231,32 @@ bool CinnamonNetwork::tick(SST::Cycle_t cycle) {
 }
 
 bool CinnamonNetwork::bufferTick(SST::Cycle_t cycle) {
+    bool congestionThisCycle = false;
+    uint64_t totalQueued = 0;
     for(size_t i = 0; i < numChiplets; i++){
         if(outputBWBuffer[i].empty()){
             continue;
         }
         auto & bufferEntry = outputBWBuffer[i].front();
+        size_t depth = outputBWBuffer[i].size();
+        totalQueued += depth;
+        if(depth > stats_.maxBufferDepth){
+            stats_.maxBufferDepth = depth;
+        }
         if(bufferEntry.inFlight) {
+            // Front entry is in-flight; if there are more entries waiting behind it, that's congestion
+            if(depth > 1){
+                congestionThisCycle = true;
+            }
             continue;
         }
         auto packet = std::make_unique<CinnamonNetworkEvent>(bufferEntry.syncID);
         outputTiming[i]->send(1,packet.release());
         bufferEntry.inFlight = true;
+    }
+    stats_.totalBufferedEntries += totalQueued;
+    if(congestionThisCycle){
+        stats_.congestionCycles++;
     }
     return true;
 }
@@ -393,8 +419,21 @@ std::string CinnamonNetwork::printStats() const {
     s << "Network Unit: \n";
     s << "\tTotal Cycles: " << stats_.totalCycles << "\n";
     s << "\tBusy Cycles: " << stats_.busyCycles << "\n";
-    double utilisation = ((100.0) * stats_.busyCycles)/stats_.totalCycles;
+    double utilisation = stats_.totalCycles > 0 ? ((100.0) * stats_.busyCycles)/stats_.totalCycles : 0.0;
     s << "\tUtilisation %: " << utilisation << "\n";
+
+    s << "  Network Congestion Statistics:\n";
+    s << "\tBuffer Congestion Cycles:    " << stats_.congestionCycles << "\n";
+    double congestionPct = stats_.totalCycles > 0 ? ((100.0) * stats_.congestionCycles) / stats_.totalCycles : 0.0;
+    s << "\tBuffer Congestion %:         " << congestionPct << "\n";
+    double avgBufferDepth = stats_.totalCycles > 0 ? ((double) stats_.totalBufferedEntries) / stats_.totalCycles : 0.0;
+    s << "\tAvg Buffer Queue Depth:      " << avgBufferDepth << "\n";
+    s << "\tMax Buffer Queue Depth:      " << stats_.maxBufferDepth << "\n";
+    s << "\tMulti-Sync Contention Cycles:" << stats_.multiSyncCycles << "\n";
+    double multiSyncPct = stats_.totalCycles > 0 ? ((100.0) * stats_.multiSyncCycles) / stats_.totalCycles : 0.0;
+    s << "\tMulti-Sync Contention %:     " << multiSyncPct << "\n";
+    s << "\tMax Concurrent Sync Ops:     " << stats_.maxConcurrentSyncOps << "\n";
+
     return s.str();
 }
 

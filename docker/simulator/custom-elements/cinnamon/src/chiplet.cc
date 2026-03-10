@@ -258,6 +258,22 @@ void CinnamonChiplet::finish() {
 		output->output("\tIdle %%:                    %.2f\n", (100.0 * stats_.idleCycles) / totalCycles);
 	}
 	output->output("------------------------------------------------------------------------\n");
+
+	// Network congestion summary (from this chiplet's DisQueue perspective)
+	output->output("Network Congestion (Chiplet %" PRIu32 "):\n", chipletID_);
+	auto netWaitCycles = disQueue->getWaitingForNetworkCycles();
+	auto disQTotalCycles = disQueue->getTotalCycles();
+	auto disBusyCycles = disQueue->getBusyCycles();
+	output->output("\tNetwork Wait Cycles:       %" PRIu64 "\n", (uint64_t)netWaitCycles);
+	output->output("\tData In-Flight Cycles:     %" PRIu64 "\n", (uint64_t)disBusyCycles);
+	if(disQTotalCycles > 0) {
+		output->output("\tNetwork Wait %%:            %.2f\n", (100.0 * netWaitCycles) / disQTotalCycles);
+		output->output("\tData In-Flight %%:          %.2f\n", (100.0 * disBusyCycles) / disQTotalCycles);
+	}
+	if(totalCycles > 0) {
+		output->output("\tNetwork Wait / Total %%:    %.2f\n", (100.0 * netWaitCycles) / totalCycles);
+	}
+	output->output("------------------------------------------------------------------------\n");
 }
 
 bool CinnamonChiplet::canMapToPhysicalRegister(const CinnamonParsedValueType & val){
