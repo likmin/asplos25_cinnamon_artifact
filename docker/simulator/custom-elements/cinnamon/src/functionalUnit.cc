@@ -1473,6 +1473,7 @@ void CinnamonDisQueue::handle_incoming(SST::Event * ev) {
 
 void CinnamonDisQueue::tick(SST::Cycle_t currentCycle) {
     stats_.totalCycles++;
+    lastCycleBusy_ = false;
     using OpCode = CinnamonInstruction::OpCode;
     if(busyWith == nullptr){
         if(instructionQueue.empty()){
@@ -1518,6 +1519,7 @@ void CinnamonDisQueue::tick(SST::Cycle_t currentCycle) {
         bool networkReady = network->networkReady(syncID);
         if(!networkReady) {
             stats_.waitingForNetworkCycles++;
+            lastCycleBusy_ = true;
             return;
         }
 
@@ -1536,6 +1538,7 @@ void CinnamonDisQueue::tick(SST::Cycle_t currentCycle) {
         }
     } else if(busyWith != nullptr){
         stats_.busyCycles++;
+        lastCycleBusy_ = true;
     }
 }
 
@@ -1567,7 +1570,8 @@ void CinnamonFunctionalUnit::executeCycleEnd(SST::Cycle_t currentCycle) {
 
     stats_.totalCycles++;
 
-    if(!inProcess.empty()) {
+    lastCycleBusy_ = !inProcess.empty();
+    if(lastCycleBusy_) {
         stats_.busyCycles++;
         stats_.busyCyclesWindow++;
     }
@@ -1717,6 +1721,7 @@ CinnamonBaseConversionUnit::CinnamonBaseConversionUnit(CinnamonChiplet * pe, con
 
 void CinnamonBaseConversionUnit::executeCycleEnd(SST::Cycle_t currentCycle) {
 
+    lastCycleBusy_ = busyWith.has_value();
     if(!busyWith.has_value()){
         return;
     }

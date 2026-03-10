@@ -216,6 +216,10 @@ private:
       SST::Cycle_t busyCyclesWindow = 0;
       uint64_t vectorRegisterReads = 0;
       uint64_t vectorRegisterWrites = 0;
+      uint64_t computeOnlyCycles = 0;
+      uint64_t commOnlyCycles = 0;
+      uint64_t overlapCycles = 0;
+      uint64_t idleCycles = 0;
   } stats_;
 
   struct Config {
