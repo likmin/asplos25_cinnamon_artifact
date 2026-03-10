@@ -197,6 +197,12 @@ private:
         SST::Cycle_t totalCycles = 0;
         SST::Cycle_t busyCycles = 0;
         SST::Cycle_t busyCyclesWindow = 0;
+        // Network congestion stats
+        uint64_t congestionCycles = 0;         // Cycles where at least one buffer has entries waiting behind an in-flight entry
+        uint64_t totalBufferedEntries = 0;     // Sum of queued entries across all cycles (for average)
+        uint64_t maxBufferDepth = 0;           // Maximum single-buffer queue depth observed
+        uint64_t multiSyncCycles = 0;          // Cycles where more than 1 sync op is active simultaneously
+        uint64_t maxConcurrentSyncOps = 0;     // Maximum number of concurrent sync ops observed
     } stats_;
 
 

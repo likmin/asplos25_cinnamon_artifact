@@ -411,6 +411,10 @@ class CinnamonDisQueue : public CinnamonInstructionQueue {
         std::string printStats();
         bool wasBusy() const override { return lastCycleBusy_; }
 
+        SST::Cycle_t getWaitingForNetworkCycles() const { return stats_.waitingForNetworkCycles; }
+        SST::Cycle_t getBusyCycles() const { return stats_.busyCycles; }
+        SST::Cycle_t getTotalCycles() const { return stats_.totalCycles; }
+
 
         // TODO: Add destructor 
 };
