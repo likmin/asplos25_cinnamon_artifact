@@ -89,6 +89,7 @@ class CinnamonInstructionQueue {
         virtual void addToInstructionQueue(std::shared_ptr<CinnamonInstruction> instruction) = 0;
         virtual void tick(SST::Cycle_t currentCycle) = 0;
         virtual bool okayToFinish() = 0;
+        virtual std::string printStats() { return ""; }
         virtual ~CinnamonInstructionQueue() = default; 
     protected:
         using FuVector = std::vector<std::shared_ptr<CinnamonFunctionalUnit>>;
@@ -399,6 +400,7 @@ class CinnamonDisQueue : public CinnamonInstructionQueue {
         void addToInstructionQueue(std::shared_ptr<CinnamonInstruction> instruction) override;
         void tick(SST::Cycle_t currentCycle) override;
         bool okayToFinish() override;
+        std::string printStats();
 
 
         // TODO: Add destructor 
